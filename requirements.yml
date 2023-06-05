@@ -1,0 +1,3 @@
+- name: ansible_rclone
+  src: https://github.com/stefangweichinger/ansible-rclone
+  version: main
