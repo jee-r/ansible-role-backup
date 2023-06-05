@@ -1,0 +1,41 @@
+---
+
+- name: Resticprofile config 
+  debug:
+    msg: "Config Path: {{ resticprofile_config_directory + '/' + resticprofile_config_filename }}"
+
+- name: Create Resticprofile Directory
+  ansible.builtin.file:
+    path: "{{ resticprofile_config_directory }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: not ansible_check_mode
+
+- name: Unschedule all if schedule is enalbled
+  ansible.builtin.shell: /usr/local/bin/resticprofile unschedule --all
+  when: schedule is defined and schedule | bool
+
+- name: Copy Template
+  ansible.builtin.template:
+    src: ./templates/profiles_multi_backend.yaml.j2
+    dest: "{{ resticprofile_config_directory + '/' + resticprofile_config_filename }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when: not ansible_check_mode
+
+- name: Schedule all if schedule is enalbled
+  ansible.builtin.shell: /usr/local/bin/resticprofile schedule --all
+  when: schedule is defined and schedule | bool
+
+# - name: get contents of config file
+#   command: "cat {{ resticprofile_config_directory + '/' + resticprofile_config_filename }}"
+#   register: config_file
+#   when: ansible_check_mode
+
+# - name: Print template output
+#   debug:
+#     msg: "{{config_file.stdout}}"
+#   when: ansible_check_mode

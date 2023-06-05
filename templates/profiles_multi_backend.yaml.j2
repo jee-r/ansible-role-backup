@@ -1,0 +1,186 @@
+version: "1"
+
+global:
+  default-command: {{ main_config.default_command }}
+  nice: {{ main_config.nice }}
+  ionice: {{ main_config.ionice }}
+  ionice-class: {{ main_config.ionice_class }}
+  min-memory: {{ main_config.min_memory }}
+  priority: {{ main_config.priority }}
+  restic-arguments-filter: true
+  initialize: false
+  # Retry a restic command that failed on acquiring a lock every minute 
+  # (at least), for up to the time specified in "--lock-wait duration". 
+  restic-lock-retry-after: 1m
+  # Ask restic to unlock a stale lock when its age is more than X hours
+  # and the option "force-inactive-lock" is enabled in the profile.
+  restic-stale-lock-age: 3h
+
+groups:
+  all:
+{% for source in sources %}
+{% for backend in backends %}
+    - {{ source.name }}-{{ backend.name }}
+{% endfor %}
+{% endfor %}
+{% for backend in backends %}
+  to-{{ backend.name }}:
+{% for source in sources %}
+    - {{ source.name }}-{{ backend.name }}
+{% endfor %}
+{% endfor %}
+{% for source in sources %}
+  {{ source.name }}:
+{% for backend in backends %}
+    - {{ source.name }}-{{ backend.name }}
+{% endfor %}
+{% endfor %}
+
+
+{% for source in sources %}
+{% for backend in backends %}
+{{ source.name }}-{{ backend.name }}:
+  repository: "{{ backend.repository }}"
+  password-file: "{{ backend.password_file }}"
+  lock: "/tmp/resticprofile-{{ source.name }}-{{ backend.name }}.lock"
+  force-inactive-lock: true
+{% if global_env is defined %}
+  env:
+{% for item in global_env %}
+    - {{ item.name }}: "{{ item.value }}"
+{% endfor %}
+{% endif %}
+{% if source.runbefore is defined %}
+  run-before:
+{% for item in source.runbefore %}
+    - {{ item }}
+{% endfor %}
+{% endif %}
+{% if copy_backend is defined %}
+  copy:
+    repository: {{ copy_backend.repository }}
+    password-file: {{ copy_backend.password_file }}
+    initialize-copy-chunker-params: true
+    send-before:
+      - method: HEAD
+        url: "{{ healthcheck_url}}/ping/{{ healthcheck_ping_key }}/copy-{{ source.name }}-{{ backend.name }}/start"
+    send-after:
+      - method: HEAD
+        url: "{{ healthcheck_url}}/ping/{{ healthcheck_ping_key }}/copy-{{ source.name }}-{{ backend.name }}"
+    send-after-fail:
+      - method: POST
+        url: "{{ healthcheck_url}}/ping/{{ healthcheck_ping_key }}/copy-{{ source.name }}/fail"
+        body: "${ERROR}\n\n${ERROR_STDERR}"
+        headers:
+          - name: Content-Type
+            value: "text/plain; charset=UTF-8"
+    schedule: "{{ schedule_copy }}"
+    schedule-permission: system
+    schedule-priority: background
+    schedule-lock-mode: default
+    schedule-lock-wait: 15m30s
+{% endif %}
+  backup:
+    verbose: true
+    source:
+{% for path in source.paths %}
+      - "{{ path }}"
+{% endfor %}
+    one-file-system: true
+    exclude-caches: true
+    exclude:
+{% if source.exclude is defined %}
+      {{ source.exclude }}
+{% else %}
+{% for item in exclude_base %}
+      - {{ item }}
+{% endfor %}
+{% if source.exclude_add is defined %}
+{% for item in source.exclude_add %}
+      - {{ item }}
+{% endfor %}
+{% elif exclude_base_add is defined %}
+{% for item in exclude_base_add %}
+      - {{ item }}
+{% endfor %}
+{% endif %}
+{% endif %}
+    send-before:
+      - method: HEAD
+        url: "{{ healthcheck_url}}/ping/{{ healthcheck_ping_key }}/backup-{{ source.name }}-{{ backend.name }}/start"
+    send-after:
+      - method: HEAD
+        url: "{{ healthcheck_url}}/ping/{{ healthcheck_ping_key }}/backup-{{ source.name }}-{{ backend.name }}"
+    send-after-fail:
+      - method: POST
+        url: "{{ healthcheck_url}}/ping/{{ healthcheck_ping_key }}/backup-{{ source.name }}-{{ backend.name }}/fail"
+        body: "${ERROR}\n\n${ERROR_STDERR}"
+        headers:
+          - name: Content-Type
+            value: "text/plain; charset=UTF-8"
+    schedule: "*-*-* 12:30:00"
+    schedule-permission: system
+    schedule-priority: background
+    schedule-lock-mode: default
+    schedule-lock-wait: 15m30s
+  retention:
+    before-backup: false
+    after-backup: true
+    keep-daily: 7
+    keep-weekly: 5
+    keep-monthly: 12
+    keep-yearly: 3
+    prune: false
+  snapshots:
+    path: true
+{% endfor %}
+{% endfor %}
+
+
+{% for backend in backends %}
+{{ backend.name }}:
+  repository: "{{ backend.repository }}"
+  password-file: "{{ backend.password_file }}"
+  lock: "/tmp/resticprofile-{{ backend.name }}.lock"
+  force-inactive-lock: true
+{% if global_env is defined %}
+  env:
+{% for item in global_env %}
+    - {{ item.name }}: "{{ item.value }}"
+{% endfor %}
+{% endif %}
+  prune:
+    schedule: "weekly"
+    schedule-permission: system
+    schedule-lock-wait: 1h
+    send-before:
+      - method: HEAD
+        url: "{{ healthcheck_url }}/ping/{{ healthcheck_ping_key }}/prune-{{ backend.name }}/start"
+    send-after:
+      - method: HEAD
+        url: "{{ healthcheck_url }}/ping/{{ healthcheck_ping_key }}/prune-{{ backend.name }}"
+    send-after-fail:
+      - method: POST
+        url: "{{ healthcheck_url }}/ping/{{ healthcheck_ping_key }}/prune-{{ backend.name }}/fail"
+        body: "${ERROR}\n\n${ERROR_STDERR}"
+        headers:
+          - name: Content-Type
+            value: "text/plain; charset=UTF-8"
+  check:
+    schedule: "weekly"
+    schedule-permission: system
+    schedule-lock-wait: 1h
+    send-before:
+      - method: HEAD
+        url: "{{ healthcheck_url }}/ping/{{ healthcheck_ping_key }}/check-{{ backend.name }}/start"
+    send-after:
+      - method: HEAD
+        url: "{{ healthcheck_url }}/ping/{{ healthcheck_ping_key }}/check-{{ backend.name }}"
+    send-after-fail:
+      - method: POST
+        url: "{{ healthcheck_url }}/ping/{{ healthcheck_ping_key }}/check-{{ backend.name }}/fail"
+        body: "${ERROR}\n\n${ERROR_STDERR}"
+        headers:
+          - name: Content-Type
+            value: "text/plain; charset=UTF-8"
+{% endfor %}

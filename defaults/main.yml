@@ -1,0 +1,74 @@
+# Resticprofile
+resticprofile_config_directory: /root/.config/resticprofile
+resticprofile_config_filename: profiles.yaml
+
+backends:
+  - name: backend1
+    repository: rclone:backend1:Backup/MyHost
+    password_file: password_backend1.txt
+  - namesitory: backend2
+    repo: rclone:backend2:Backup/MyHost
+    password_file: password_backend2.txt
+ 
+# copy_backend:
+#   repository: rclone:copy_backend:Backup/MyHost
+#   password_file: password_copy_backend.txt
+
+sources:
+  - name: home
+    paths: 
+      - /home
+  - name: root
+    paths: 
+      - "/root"
+  - name: sys
+    paths: 
+      - "/"
+    exclude_add:
+      - "/home"
+      - "/root"
+  - name: pkg-list
+    paths: 
+      - "/tmp/packages_list.txt"
+    # Debian
+    runbefore: sh -c "dpkg-query -f '${binary:Package}\n' -W > /tmp/packages_list.txt"
+    # Arch
+    # runbefore: sh -c "pacman -Q > /tmp/packages_list.txt"
+
+schedule: false
+schedule_backup: "*-*-* 02:30:00"
+schedule_copy: "*-*-* 03:00:00"
+
+main_config:
+  default_command: snapshots
+  nice: 15
+  ionice: true
+  ionice_class: 2
+  min_memory: 50
+  priority: low
+  restic_arguments_filter: true
+  initialize: false
+  restic_lock_retry_after: 1m
+  restic_stale_lock_age: 3h
+
+exclude_base: 
+  - "/var/cache/*"
+  - "/var/tmp/*"
+  - "/proc/*"
+  - "/sys/*"
+  - "/dev/*"
+  - "/run/*"
+  - "/tmp/*"
+  - "/mnt/*"
+  - "/swapfile"
+  - "/root/.cache"
+  - "/home/**/.cache"
+  - "/home/*/.local/share/gnome-boxes/images/*"
+  - "/home/*/.local/share/Trash/*"
+    
+# Healthcheck
+
+healthcheck_url: "https://healthchecks.io"
+healthcheck_ping_key: "Your Ping Key"
+healthcheck_api_key: "Your API Key"
+healthcheck_hostname: "MyHostname"

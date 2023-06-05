@@ -1,0 +1,78 @@
+- name: Fetch latest Resticprofile release
+  uri:
+    url: "https://api.github.com/repos/creativeprojects/resticprofile/releases/latest"
+    return_content: yes
+  register: resticprofile_release
+  changed_when: false
+  when: not resticprofile_version is defined
+
+- name: Set resticprofile_version for check mode
+  set_fact:
+    resticprofile_version: "{{ resticprofile_version }}"
+  when: ansible_check_mode
+
+- name: Parse latest resticprofile version
+  set_fact:
+    resticprofile_version: "{{ resticprofile_release.json.tag_name | regex_replace('^v', '') }}"
+  when: resticprofile_release.json is defined # Skip the task if API call was skipped
+
+- name: Get host architecture
+  set_fact:
+    host_arch: "{{ ansible_architecture }}"
+  when: ansible_architecture != 'x86_64'
+
+- name: Set architecture to 'amd64' for x86_64
+  set_fact:
+    host_arch: "amd64"
+  when: ansible_architecture == 'x86_64'
+
+- name: Create temporary directory
+  tempfile:
+    state: directory
+  register: temp_dir
+
+- name: Download resticprofile binary
+  get_url:
+    url: "https://github.com/creativeprojects/resticprofile/releases/download/v{{ resticprofile_version }}/resticprofile_{{ resticprofile_version }}_linux_{{ host_arch }}.tar.gz"
+    dest: "{{ temp_dir.path }}/resticprofile_{{ resticprofile_version }}_linux_{{ host_arch }}.tar.gz"
+
+- name: Download SHA256SUMS
+  get_url:
+    url: "https://github.com/creativeprojects/resticprofile/releases/download/v{{ resticprofile_version }}/checksums.txt"
+    dest: "{{ temp_dir.path }}/checksums.txt"
+
+- name: Verify SHA256 checksum
+  shell: "sha256sum -c --ignore-missing {{ temp_dir.path }}/checksums.txt"
+  args:
+    chdir: "{{ temp_dir.path }}"
+
+- name: Extract Restic Profile binary
+  shell: "tar -xf {{ temp_dir.path }}/resticprofile_{{ resticprofile_version }}_linux_{{ host_arch }}.tar.gz -C {{ temp_dir.path }}"
+  args:
+    creates: "{{ temp_dir.path }}/resticprofile"
+
+- name: Move resticprofile profile binary to /usr/local/bin
+  command: "mv {{ temp_dir.path }}/resticprofile /usr/local/bin/resticprofile"
+  args:
+    creates: /usr/local/bin/resticprofile"
+
+- name: Change ownership and permissions of Restic Profile binary
+  file:
+    path: /usr/local/bin/resticprofile
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Remove temporary directory
+  file:
+    path: "{{ temp_dir.path }}"
+    state: absent
+
+- name: Get resticprofile version
+  command: resticprofile version
+  register: resticprofile_version_output
+  changed_when: false
+
+- name: Print resticprofile version
+  debug:
+    var: resticprofile_version_output.stdout

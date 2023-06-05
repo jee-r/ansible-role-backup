@@ -1,0 +1,64 @@
+---
+
+- name: Debug checks
+  ansible.builtin.debug:
+    msg: "{{ healthcheck_url }}/api/v2/checks/"
+    
+- name: Initialize checks list
+  set_fact:
+    checks: []
+
+- name: Create Backup healthchecks
+  ansible.builtin.set_fact:
+    checks: "{{ checks | default([]) + [
+      {
+      'name': 'backup-' + item.1.name + '-' + item.0.name,
+      'timeout': 86400,
+      'grace': 345600,
+      'tags': 'backup ' + item.0.name + ' ' + item.1.name + ' ' + healthcheck_hostname,
+      'channels': '*',
+      'unique': ['name']
+      }] }}"      
+  loop: "{{ backends | product(sources) | list }}"
+
+- name: Create Prune healthchecks
+  ansible.builtin.set_fact:
+    checks: "{{ checks | default([]) + [
+      {
+      'name': 'prune-' + item.name,
+      'timeout': 604800,
+      'grace': 864000,
+      'tags': 'prune ' + item.name + ' ' + healthcheck_hostname,
+      'channels': '*',
+      'unique': ['name']
+      }] }}"      
+  loop: "{{ backends }}"
+
+- name: Create Check healthchecks
+  ansible.builtin.set_fact:
+    checks: "{{ checks | default([]) + [
+      {
+      'name': 'check-' + item.name,
+      'timeout': 604800,
+      'grace': 864000,
+      'tags': 'check ' + item.name + ' ' + healthcheck_hostname,
+      'channels': '*',
+      'unique': ['name']
+      }] }}"
+  loop: "{{ backends }}"
+
+- name: Debug checks
+  ansible.builtin.debug:
+    msg: "{{ healthcheck_url }}/api/v2/checks/"
+
+- name: create healthchecks
+  uri:
+    url: "{{ healthcheck_url }}/api/v2/checks/"
+    method: POST
+    status_code: "200,201"
+    timeout: 30
+    headers:
+      X-Api-Key: "{{ healthcheck_api_key }}"
+    body_format: json
+    body: "{{ item }}"
+  loop: "{{checks}}"

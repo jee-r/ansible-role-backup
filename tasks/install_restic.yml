@@ -1,0 +1,91 @@
+- name: Check if bunzip2 is installed
+  stat:
+    path: /bin/bunzip2
+  register: bunzip2_check
+  failed_when: false
+  changed_when: false
+
+- name: Install bunzip2
+  package:
+    name: bzip2
+    state: present
+  when: bunzip2_check.stat.exists == false
+
+- name: Fetch latest Restic release
+  uri:
+    url: "https://api.github.com/repos/restic/restic/releases/latest"
+    return_content: yes
+  register: restic_release
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Set restic_version for check mode
+  set_fact:
+    restic_version: "{{ restic_version }}"
+  when: ansible_check_mode
+
+- name: Parse latest Restic version
+  set_fact:
+    restic_version: "{{ restic_release.json.tag_name | regex_replace('^v', '') }}"
+  when: restic_release.json is defined # Skip the task if API call was skipped
+
+- name: Get host architecture
+  set_fact:
+    host_arch: "{{ ansible_architecture }}"
+  when: ansible_architecture != 'x86_64'
+
+- name: Set architecture to 'amd64' for x86_64
+  set_fact:
+    host_arch: "amd64"
+  when: ansible_architecture == 'x86_64'
+
+- name: Create temporary directory
+  tempfile:
+    state: directory
+  register: temp_dir
+
+- name: Download Restic binary
+  get_url:
+    url: "https://github.com/restic/restic/releases/download/v{{ restic_version }}/restic_{{ restic_version }}_linux_{{ host_arch }}.bz2"
+    dest: "{{ temp_dir.path }}/restic_{{ restic_version }}_linux_{{ host_arch }}.bz2"
+
+- name: Download SHA256SUMS
+  get_url:
+    url: "https://github.com/restic/restic/releases/download/v{{ restic_version }}/SHA256SUMS"
+    dest: "{{ temp_dir.path }}/SHA256SUMS"
+
+- name: Verify SHA256 checksum
+  shell: "sha256sum -c --ignore-missing {{ temp_dir.path }}/SHA256SUMS"
+  args:
+    chdir: "{{ temp_dir.path }}"
+
+- name: Extract Restic binary
+  shell: "bunzip2 -d {{ temp_dir.path }}/restic_{{ restic_version }}_linux_{{ host_arch }}.bz2"
+  args:
+    chdir: "{{ temp_dir.path }}"
+
+- name: Move Restic binary to /usr/local/bin
+  command: "mv {{ temp_dir.path }}/restic_{{ restic_version }}_linux_{{ host_arch }} /usr/local/bin/restic"
+  args:
+    creates: /usr/local/bin/restic
+
+- name: Set executable permissions for Restic binary
+  file:
+    path: /usr/local/bin/restic
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Remove temporary directory
+  file:
+    path: "{{ temp_dir.path }}"
+    state: absent
+
+- name: Get Restic version
+  command: restic version
+  register: restic_version_output
+  changed_when: false
+
+- name: Print Restic version
+  debug:
+    var: restic_version_output.stdout

@@ -1,0 +1,51 @@
+---
+- block:
+  - name: Install rclone
+    include_tasks: install_rclone.yml
+  tags: 
+    - rclone
+    - install_rclone
+    - install
+
+- block:
+  - name: Install restic
+    include_tasks: install_restic.yml
+  tags: 
+    - restic
+    - install_restic
+    - install
+
+- block:
+  - name: Install resticprofile
+    include_tasks: install_resticprofile.yml
+  tags: 
+    - resticprofile
+    - install_resticprofile
+    - install
+
+- block:
+  - name: Setup resticprofile config
+    include_tasks: setup_resticprofile_config.yml
+  tags: 
+    - resticprofile
+    - setup
+    - config_resticprofile
+    - config
+      
+- block:
+  - name: Remove All Healthchecks
+    include_tasks: healthcheck_remove_all.yml
+  tags: 
+    - healthcheck
+    - healthcheck_remove
+    - setup
+    - config
+
+- block:
+  - name: Create All Healthchecks
+    include_tasks: healthcheck_create_all.yml
+  tags: 
+    - healthcheck
+    - healthcheck_create
+    - setup
+    - config

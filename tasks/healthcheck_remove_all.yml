@@ -1,0 +1,52 @@
+---
+- name: Debug API Key
+  ansible.builtin.debug:
+    var: healthcheck_api_key
+
+- name: Debug checks
+  ansible.builtin.debug:
+    msg: "{{ healthcheck_url }}/api/v2/checks/"
+
+- name: list healthchecks
+  uri:
+    url: "{{ healthcheck_url }}/api/v2/checks/"
+    # body_format: json
+    method: GET
+    status_code: 200
+    timeout: 30
+    headers:
+      X-Api-Key: "{{ healthcheck_api_key }}"
+  register: result
+
+- name: debug
+  ansible.builtin.debug:
+    var: result.json
+
+# - name: Display checks url
+#   ansible.builtin.debug:
+#     var: item
+#   loop: "{{ result.json_query(checks.update_url') }}"
+
+- name: Extract update_url
+  ansible.builtin.set_fact:
+    update_urls: "{{ result.json.checks | json_query('[].update_url') }}"
+
+- name: Debug update_urls
+  ansible.builtin.debug:
+    var: item
+  loop: "{{update_urls}}"
+
+- name: remove healthchecks
+  uri:
+    url: "{{ item }}"
+    method: DELETE
+    status_code: 200
+    timeout: 30
+    headers:
+      X-Api-Key: "{{ healthcheck_api_key }}"
+  register: delete_result
+  loop: "{{update_urls}}"
+
+- name: Debug response
+  ansible.builtin.debug:
+    var: delete_result
