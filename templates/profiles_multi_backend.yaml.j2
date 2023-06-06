@@ -118,7 +118,7 @@ groups:
         headers:
           - name: Content-Type
             value: "text/plain; charset=UTF-8"
-    schedule: "*-*-* 12:30:00"
+    schedule: "{{ schedule_backup }}"
     schedule-permission: system
     schedule-priority: background
     schedule-lock-mode: default
