@@ -1,15 +1,7 @@
-- name: Check if bunzip2 is installed
-  stat:
-    path: /bin/bunzip2
-  register: bunzip2_check
-  failed_when: false
-  changed_when: false
-
 - name: Install bunzip2
   package:
     name: bzip2
     state: present
-  when: bunzip2_check.stat.exists == false
 
 - name: Fetch latest Restic release
   uri:
