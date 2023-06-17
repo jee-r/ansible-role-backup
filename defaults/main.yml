@@ -65,6 +65,9 @@ exclude_base:
   - "/home/**/.cache"
   - "/home/*/.local/share/gnome-boxes/images/*"
   - "/home/*/.local/share/Trash/*"
+  - "/var/lib/docker/overlay2/*"
+  - "/var/lib/docker-plugins/rclone/cache"
+  - "/var/lib/docker/plugins"
     
 # Healthcheck
 
