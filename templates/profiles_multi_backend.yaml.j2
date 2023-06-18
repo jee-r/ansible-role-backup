@@ -15,6 +15,13 @@ global:
   # Ask restic to unlock a stale lock when its age is more than X hours
   # and the option "force-inactive-lock" is enabled in the profile.
   restic-stale-lock-age: 3h
+{% if main_config.systemd_unit_template is defined %}
+  systemd-unit-template: {{ main_config.systemd_unit_template }}
+{% endif %}
+{% if main_config.systemd_timer_template is defined %}
+  systemd-timer-template: {{ main_config.systemd_timer_template }}
+{% endif %}
+
 
 groups:
   all:

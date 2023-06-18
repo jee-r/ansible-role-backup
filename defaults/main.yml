@@ -50,7 +50,9 @@ main_config:
   initialize: false
   restic_lock_retry_after: 1m
   restic_stale_lock_age: 3h
-
+  #systemd_unit_template: "template_file_path"
+  #systemd_timer_template: "template_file_path"
+    
 exclude_base: 
   - "/var/cache/*"
   - "/var/tmp/*"
