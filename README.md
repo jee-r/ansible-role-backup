@@ -16,6 +16,12 @@ mkdir roles
 ansible-galaxy role install git+https://github.com/jee-r/ansible-role-backup.git,main -p ./roles/
 ```
 
+### Update
+
+```
+ansible-galaxy role install --force --force-with-deps  git+https://github.com/jee-r/ansible-role-backup.git,main -p ./roles/
+```
+
 ### create a playbook
 
 ```yaml
