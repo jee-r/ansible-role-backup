@@ -1,0 +1,15 @@
+[Unit]
+Description={{% raw %}}{{ .JobDescription }}{{% endraw %}}
+
+[Service]
+Type=notify
+WorkingDirectory={{% raw %}}{{ .WorkingDirectory }}{{% endraw %}}
+ExecStart={{% raw %}}{{ .CommandLine }}{{% endraw %}}
+Nice={{ unit.service.nice }}
+CPUQuota={{ unit.service.cpuquota }}
+{{% raw %}
+{{ range .Environment -}}
+Environment="{{ . }}"
+{{ end -}}
+{{% endraw %}
+

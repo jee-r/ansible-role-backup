@@ -17,6 +17,15 @@
   ansible.builtin.shell: /usr/local/bin/resticprofile unschedule --all
   when: schedule is defined and schedule | bool
 
+- name: Copy Systemd Unit Service Template
+  ansible.builtin.template:
+    src: ./templates/service.tmpl.j2
+    dest: "{{ resticprofile_config_directory + '/' + 'service.tmpl' }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when: systemd_unit.service and not ansible_check_mode
+
 - name: Copy Template
   ansible.builtin.template:
     src: ./templates/profiles_multi_backend.yaml.j2
