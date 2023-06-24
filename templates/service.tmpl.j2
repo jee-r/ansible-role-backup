@@ -1,15 +1,15 @@
 [Unit]
-Description={{% raw %}}{{ .JobDescription }}{{% endraw %}}
+Description={% raw %}{{ .JobDescription }}{% endraw %}
 
 [Service]
 Type=notify
-WorkingDirectory={{% raw %}}{{ .WorkingDirectory }}{{% endraw %}}
-ExecStart={{% raw %}}{{ .CommandLine }}{{% endraw %}}
+WorkingDirectory={% raw %}{{ .WorkingDirectory }}{% endraw %}
+ExecStart={% raw %}{{ .CommandLine }}{% endraw %}
 Nice={{ systemd_unit_template.service.nice }}
 CPUQuota={{ systemd_unit_template.service.cpuquota }}
-{{% raw %}
+{% raw %}
 {{ range .Environment -}}
 Environment="{{ . }}"
 {{ end -}}
-{{% endraw %}
+{% endraw %}
 
