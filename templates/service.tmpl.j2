@@ -5,8 +5,8 @@ Description={{% raw %}}{{ .JobDescription }}{{% endraw %}}
 Type=notify
 WorkingDirectory={{% raw %}}{{ .WorkingDirectory }}{{% endraw %}}
 ExecStart={{% raw %}}{{ .CommandLine }}{{% endraw %}}
-Nice={{ unit.service.nice }}
-CPUQuota={{ unit.service.cpuquota }}
+Nice={{ systemd_unit_template.service.nice }}
+CPUQuota={{ systemd_unit_template.service.cpuquota }}
 {{% raw %}
 {{ range .Environment -}}
 Environment="{{ . }}"
