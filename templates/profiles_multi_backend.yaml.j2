@@ -85,7 +85,7 @@ groups:
     schedule-permission: system
     schedule-priority: background
     schedule-lock-mode: default
-    schedule-lock-wait: 30m
+    schedule-lock-wait: "{{ schedule_lock_wait }}"
 {% endif %}
   backup:
     verbose: true
@@ -129,7 +129,7 @@ groups:
     schedule-permission: system
     schedule-priority: background
     schedule-lock-mode: default
-    schedule-lock-wait: 30m
+    schedule-lock-wait: "{{ schedule_lock_wait }}" 
   retention:
     before-backup: false
     after-backup: true
@@ -159,7 +159,7 @@ groups:
   prune:
     schedule: "weekly"
     schedule-permission: system
-    schedule-lock-wait: 1h
+    schedule-lock-wait: "{{ schedule_lock_wait }}"
     send-before:
       - method: HEAD
         url: "{{ healthcheck_url }}/ping/{{ healthcheck_ping_key }}/prune-{{ backend.name }}/start"
@@ -176,7 +176,7 @@ groups:
   check:
     schedule: "weekly"
     schedule-permission: system
-    schedule-lock-wait: 1h
+    schedule-lock-wait: "{{ schedule_lock_wait }}"
     send-before:
       - method: HEAD
         url: "{{ healthcheck_url }}/ping/{{ healthcheck_ping_key }}/check-{{ backend.name }}/start"

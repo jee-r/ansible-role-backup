@@ -38,6 +38,7 @@ sources:
 schedule: false
 schedule_backup: "*-*-* 02:30:00"
 schedule_copy: "*-*-* 03:00:00"
+schedule_lock_wait: 3h
 
 main_config:
   default_command: snapshots
