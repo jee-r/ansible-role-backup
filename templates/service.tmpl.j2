@@ -8,7 +8,7 @@ ExecStart={%- raw %}{{ .CommandLine }}{%- endraw %}
 Nice={{ systemd_unit_template.service.nice }}
 {% for option, value in systemd_unit_template.service.cgroups.items() %}
 {{ option }}={{ value }}
-{% endif %}
+{% endfor %}
 
 {% raw %}
 {{ range .Environment -}}
