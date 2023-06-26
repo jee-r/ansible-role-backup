@@ -4,8 +4,11 @@ Description={% raw %}{{ .JobDescription }}{% endraw %}
 [Service]
 Type=notify
 WorkingDirectory={%- raw %}{{ .WorkingDirectory }}{%- endraw %}
+
 ExecStart={%- raw %}{{ .CommandLine }}{%- endraw %}
+
 Nice={{ systemd_unit_template.service.nice }}
+
 {% for option, value in systemd_unit_template.service.cgroups.items() %}
 {{ option }}={{ value }}
 {% endfor %}
