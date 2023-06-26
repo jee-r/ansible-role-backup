@@ -3,13 +3,49 @@ Description={% raw %}{{ .JobDescription }}{% endraw %}
 
 [Service]
 Type=notify
-WorkingDirectory={% raw %}{{ .WorkingDirectory }}{% endraw %}
-
-ExecStart={% raw %}{{ .CommandLine }}{% endraw %}
-
+WorkingDirectory={%- raw %}{{ .WorkingDirectory }}{%- endraw %}
+ExecStart={%- raw %}{{ .CommandLine }}{%- endraw %}
 Nice={{ systemd_unit_template.service.nice }}
 
+{% if 'cpuquota' in systemd_unit_template.service %}
 CPUQuota={{ systemd_unit_template.service.cpuquota }}
+{% endif %}
+
+{% if 'memory_min' in systemd_unit_template.service %}
+MemoryMin={{ systemd_unit_template.service.memory_min }}
+{% endif %}
+
+{% if 'memory_low' in systemd_unit_template.service %}
+MemoryLow={{ systemd_unit_template.service.memory_low }}
+{% endif %}
+
+{% if 'memory_high' in systemd_unit_template.service %}
+MemoryHigh={{ systemd_unit_template.service.memory_high }}
+{% endif %}
+
+{% if 'memory_max' in systemd_unit_template.service %}
+MemoryMax={{ systemd_unit_template.service.memory_max }}
+{% endif %}
+
+{% if 'memory_swap_max' in systemd_unit_template.service %}
+MemorySwapMax={{ systemd_unit_template.service.memory_swap_max }}
+{% endif %}
+
+{% if 'memory_oom_control' in systemd_unit_template.service %}
+MemoryOOMControl={{ systemd_unit_template.service.memory_oom_control }}
+{% endif %}
+
+{% if 'memory_oom_kill_disable' in systemd_unit_template.service %}
+MemoryOOMKillDisable={{ systemd_unit_template.service.memory_oom_kill_disable }}
+{% endif %}
+
+{% if 'memory_swappiness' in systemd_unit_template.service %}
+MemorySwappiness={{ systemd_unit_template.service.memory_swappiness }}
+{% endif %}
+
+{% if 'memory_limit' in systemd_unit_template.service %}
+MemoryLimit={{ systemd_unit_template.service.memory_limit }}
+{% endif %}
 
 {% raw %}
 {{ range .Environment -}}

@@ -53,9 +53,18 @@ main_config:
   #systemd_unit_template: "template_file_path"
   #systemd_timer_template: "template_file_path"
     
+# see: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/managing_monitoring_and_updating_the_kernel/assembly_configuring-resource-management-using-systemd_managing-monitoring-and-updating-the-kernel#proc_managing-memory-with-systemd_assembly_configuring-resource-management-using-systemd_managing-monitoring-and-updating-the-kernel
 #systemd_unit_template:
 #  service:
 #    cpuquota: "30%"
+#    memory_max: "12G"
+#    memory_min: "2G"
+#    memory_high: "8G"
+#    memory_swap_max
+#    memory_oom_control:
+#    memory_oom_kill_disable:
+#    memory_swappiness:
+#    memory_limit:
 #    nice: 15
 
 exclude_base: 
