@@ -49,7 +49,7 @@ groups:
 {{ source.name }}-{{ backend.name }}:
   repository: "{{ backend.repository }}"
   password-file: "{{ backend.password_file }}"
-  lock: "/tmp/resticprofile-{{ source.name }}-{{ backend.name }}.lock"
+  lock: "/tmp/resticprofile.lock"
   force-inactive-lock: true
 {% if global_env is defined %}
   env:
@@ -85,7 +85,7 @@ groups:
     schedule-permission: system
     schedule-priority: background
     schedule-lock-mode: default
-    schedule-lock-wait: 15m30s
+    schedule-lock-wait: 30m
 {% endif %}
   backup:
     verbose: true
@@ -129,7 +129,7 @@ groups:
     schedule-permission: system
     schedule-priority: background
     schedule-lock-mode: default
-    schedule-lock-wait: 15m30s
+    schedule-lock-wait: 30m
   retention:
     before-backup: false
     after-backup: true
