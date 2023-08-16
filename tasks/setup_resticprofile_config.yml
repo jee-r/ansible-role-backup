@@ -16,6 +16,7 @@
 - name: Unschedule all if schedule is enalbled
   ansible.builtin.shell: /usr/local/bin/resticprofile unschedule --all
   when: schedule is defined and schedule | bool
+  tags: not_on_first_run
 
 - name: Copy Systemd Unit Service Template
   ansible.builtin.template:
