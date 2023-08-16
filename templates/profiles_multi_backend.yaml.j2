@@ -112,6 +112,13 @@ groups:
 {% endfor %}
 {% endif %}
 {% endif %}
+    tag:
+      - {{ source.name }}  
+{% if source.tags is defined %}
+{% for item in source.tags %}
+      - {{ item }}
+{% endfor %}
+{% endif %}
     send-before:
       - method: HEAD
         url: "{{ healthcheck_url}}/ping/{{ healthcheck_ping_key }}/backup-{{ source.name }}-{{ backend.name }}/start"

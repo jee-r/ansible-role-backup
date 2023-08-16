@@ -2,6 +2,7 @@
 resticprofile_config_directory: /root/.config/resticprofile
 resticprofile_config_filename: profiles.yaml
 
+
 backends:
   - name: backend1
     repository: rclone:backend1:Backup/MyHost
@@ -18,6 +19,9 @@ sources:
   - name: home
     paths: 
       - /home
+    tags:
+      - home
+      - laptop
   - name: root
     paths: 
       - "/root"
