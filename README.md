@@ -11,6 +11,12 @@ pip install ansible
 mkdir roles 
 ```
 
+### Requirements 
+
+```
+pip install jmespath
+
+```
 ## Install 
 ```
 ansible-galaxy role install git+https://github.com/jee-r/ansible-role-backup.git,main -p ./roles/
