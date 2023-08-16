@@ -31,7 +31,13 @@
     - setup
     - config_resticprofile
     - config
-      
+  
+- block:
+  - name: Check resticprofile config
+    include_tasks: check_resticprofile_config.yml
+  tags: 
+    - check_resticprofile
+
 - block:
   - name: Remove All Healthchecks
     include_tasks: healthcheck_remove_all.yml

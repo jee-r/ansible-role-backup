@@ -1,0 +1,13 @@
+---
+
+- name: Resticprofile config 
+  debug:
+    msg: "Config Path: {{ resticprofile_config_directory + '/' + resticprofile_config_filename }}"
+
+- name: Print Resticprofile Template
+  ansible.builtin.debug:
+    msg: "{{ lookup('ansible.builtin.template', './templates/profiles_multi_backend.yaml.j2') }}"
+
+- name: Print Systemd Unit
+  ansible.builtin.debug:
+    msg: "{{ lookup('ansible.builtin.template', './templates/service.tmpl.j2') }}"
